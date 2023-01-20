@@ -1,4 +1,4 @@
-package com.portfolio.moveandgroove.user.controller;
+package com.portfolio.moveandgroove.user.service;
 
 import com.portfolio.moveandgroove.user.model.User;
 import com.portfolio.moveandgroove.user.repository.UserRepository;
@@ -9,28 +9,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-public class UserControllerTest {
+public class UserServiceTest {
 
+    private static final Long ID = 1L;
     private static final String FIRST_NAME = "Son";
     private static final String LAST_NAME = "Goku";
     private static final String EMAIL = "songoku@gmail.com";
     private static final String PASSWORD = "chichi";
 
-    private UserController userController;
+    private UserService userService;
     @Mock
     private UserRepository userRepository;
 
     @BeforeEach
     void setup() {
         Assertions.assertNotNull(userRepository);
-        userController = new UserController(userRepository);
+        userService = new UserService(userRepository);
     }
 
     @Test
@@ -40,13 +40,11 @@ public class UserControllerTest {
         final List<User> usersList = Collections.singletonList(user);
         // When
         Mockito.when(userRepository.findAll()).thenReturn(usersList);
-        final ResponseEntity<List<User>> result = userController.getAllUsers();
+        final List<User> result = userService.getAllUsers();
         // Then
         Assertions.assertNotNull(result);
-        final List<User> resultBody = result.getBody();
-        Assertions.assertNotNull(resultBody);
-        Assertions.assertFalse(resultBody.isEmpty());
-        Assertions.assertEquals(resultBody.get(0), user);
+        Assertions.assertFalse(result.isEmpty());
+        Assertions.assertEquals(result.get(0), user);
         Mockito.verify(userRepository).findAll();
     }
 
@@ -55,8 +53,8 @@ public class UserControllerTest {
         // Given
         final User user = buildUserWithNull();
         // When && Then
-        final Long userId= user.getId();
-        Assertions.assertThrows(IllegalStateException.class, () -> userController.getUserById(userId));
+        final Long userId = user.getId();
+        Assertions.assertThrows(IllegalStateException.class, () -> userService.getUserById(userId));
     }
 
     @Test
@@ -67,13 +65,11 @@ public class UserControllerTest {
         final Optional<User> usersList = Optional.of(user);
         // When
         Mockito.when(userRepository.findById(userId)).thenReturn(usersList);
-        final ResponseEntity<Optional<User>> result = userController.getUserById(userId);
+        final Optional<User> result = userService.getUserById(userId);
         // Then
         Assertions.assertNotNull(result);
-        final Optional<User> resultBody = result.getBody();
-        Assertions.assertNotNull(resultBody);
-        Assertions.assertTrue(resultBody.isPresent());
-        Assertions.assertEquals(resultBody.get(), user);
+        Assertions.assertTrue(result.isPresent());
+        Assertions.assertEquals(result.get(), user);
         Mockito.verify(userRepository).findById(userId);
     }
 
@@ -82,19 +78,18 @@ public class UserControllerTest {
         // Given
         final User user = buildUserWithNull();
         // When & Then
-        final Long userId= user.getId();
-        Assertions.assertThrows(IllegalStateException.class, () -> userController.deleteUser(userId));
+        final Long userId = user.getId();
+        Assertions.assertThrows(IllegalStateException.class, () -> userService.deleteUser(userId));
     }
 
     @Test
     void deleteUser() {
         // Given
-        final Long userId = 1L;
         // When
-        Mockito.when(userRepository.existsById(userId)).thenReturn(true);
-        userController.deleteUser(userId);
+        Mockito.when(userRepository.existsById(ID)).thenReturn(true);
+        userService.deleteUser(ID);
         // Then
-        Mockito.verify(userRepository).deleteById(userId);
+        Mockito.verify(userRepository).deleteById(ID);
     }
 
     @Test
@@ -106,19 +101,19 @@ public class UserControllerTest {
         Mockito.when(userRepository.findUserByEmail(userEmail)).thenReturn(Optional.of(
                 buildUser("blabladodo", userEmail)));
         // Then
-        Assertions.assertThrows(IllegalStateException.class, () -> userController.createUser(user));
+        Assertions.assertThrows(IllegalStateException.class, () -> userService.createUser(user));
     }
 
     @Test
-    void createUserWithNotUniqueAccountName() {
+    void createUserWithNotUniqueUserName() {
         // Given
         final User user = buildUser();
-        final String userAccountName = user.getAccountName();
+        final String username = user.getUsername();
         // When
-        Mockito.when(userRepository.findUserByAccountName(userAccountName)).thenReturn(Optional.of(
-                buildUser(userAccountName, "blabla@dodo.com")));
+        Mockito.when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(
+                buildUser(username, "blabla@dodo.com")));
         // Then
-        Assertions.assertThrows(IllegalStateException.class, () -> userController.createUser(user));
+        Assertions.assertThrows(IllegalStateException.class, () -> userService.createUser(user));
     }
 
     @Test
@@ -126,11 +121,11 @@ public class UserControllerTest {
         // Given
         final User user = buildUser();
         final String userEmail = user.getEmail();
-        final String userAccountName = user.getAccountName();
+        final String userAccountName = user.getUsername();
         // When
         Mockito.when(userRepository.findUserByEmail(userEmail)).thenReturn(Optional.empty());
-        Mockito.when(userRepository.findUserByAccountName(userAccountName)).thenReturn(Optional.empty());
-        userController.createUser(user);
+        Mockito.when(userRepository.findUserByUsername(userAccountName)).thenReturn(Optional.empty());
+        userService.createUser(user);
         // Then
         Mockito.verify(userRepository).save(user);
     }
@@ -139,33 +134,57 @@ public class UserControllerTest {
     void updateUser() {
         // Given
         final User user1 = buildUser();
-        final User user2 = new User("Naruto", "Uzumaki", "hinata", "hokage", "hokage@gmail.com");
+        final User user2 = User.builder()
+                .firstname("Naruto")
+                .lastname("Uzumaki")
+                .username("hinata")
+                .password("hokage")
+                .email("hokage@gmail.com")
+                .build();
         final Long user1Id = user1.getId();
         // When
         Mockito.when(userRepository.findById(user1Id)).thenReturn(Optional.of(user1));
-        userController.updateUser(user1Id, user2);
+        userService.updateUser(user1Id, user2);
         // Then
         Assertions.assertNotNull(user1);
-        Assertions.assertEquals(user1.getFirstName(), user2.getFirstName());
-        Assertions.assertEquals(user1.getLastName(), user2.getLastName());
-        Assertions.assertEquals(user1.getAccountName(), user2.getAccountName());
+        Assertions.assertEquals(user1.getFirstname(), user2.getFirstname());
+        Assertions.assertEquals(user1.getLastname(), user2.getLastname());
+        Assertions.assertEquals(user1.getUsername(), user2.getUsername());
         Assertions.assertEquals(user1.getPassword(), user2.getPassword());
         Assertions.assertEquals(user1.getEmail(), user2.getEmail());
         Mockito.verify(userRepository).findById(user1Id);
     }
 
     private User buildUser() {
-        return new User(1L, FIRST_NAME, LAST_NAME, "songoku",
-                PASSWORD, EMAIL);
+        return User.builder()
+                .id(ID)
+                .firstname(FIRST_NAME)
+                .lastname(LAST_NAME)
+                .username("songoku")
+                .password(PASSWORD)
+                .email(EMAIL)
+                .build();
     }
 
-    private User buildUser(final String accountName, final String email) {
-        return new User(1L, FIRST_NAME, LAST_NAME, accountName,
-                PASSWORD, email);
+    private User buildUser(final String userName, final String email) {
+        return User.builder()
+                .id(ID)
+                .firstname(FIRST_NAME)
+                .lastname(LAST_NAME)
+                .username(userName)
+                .password(PASSWORD)
+                .email(email)
+                .build();
     }
 
     private User buildUserWithNull() {
-        return new User(2L, FIRST_NAME, "Gohan", "songohan",
-                "pan", EMAIL);
+        return User.builder()
+                .id(2L)
+                .firstname(FIRST_NAME)
+                .lastname("Gohan")
+                .username("songohan")
+                .password("pan")
+                .email(EMAIL)
+                .build();
     }
 }

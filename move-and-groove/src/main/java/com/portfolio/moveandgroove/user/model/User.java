@@ -4,63 +4,81 @@ package com.portfolio.moveandgroove.user.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-@Getter
-@Setter
+import java.util.Collection;
+import java.util.List;
+
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "user")
-public class User {
+@Builder
+@Table(name = "users")
+public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     @Column(name = "ID")
     private Long id;
-    @Column(name = "FIRST_NAME", length = 50, nullable = false)
-    @NotBlank(message = "FirstName is mandatory")
-    private String firstName;
-    @Column(name = "LAST_NAME", length = 50, nullable = false)
-    @NotBlank(message = "LastName is mandatory")
-    private String lastName;
-    @Column(name = "ACCOUNT_NAME", length = 50, nullable = false, unique = true)
-    @NotBlank(message = "AccountName is mandatory")
-    private String accountName;
-    @Column(name = "PASSWORD", length = 150, nullable = false)
-    @NotBlank(message = "Password is mandatory")
-    private String password;
-    @Column(name = "EMAIL_ADDRESS", length = 250, nullable = false, unique = true)
+    @Column(name = "firstname", length = 50, nullable = false)
+    @NotBlank(message = "Firstname is mandatory")
+    private String firstname;
+    @Column(name = "lastname", length = 50, nullable = false)
+    @NotBlank(message = "Lastname is mandatory")
+    private String lastname;
+    @Column(name = "username", length = 50, nullable = false, unique = true)
+    @Pattern(regexp = "^([a-zA-Z0-9.]){0,1}([a-zA-Z0-9.])+$")
+    @NotBlank(message = "Username is mandatory")
+    private String username;
+    @Column(name = "email", length = 250, nullable = false, unique = true)
     @Email
     @NotBlank(message = "Email is mandatory")
     private String email;
+    @Column(name = "role", length = 250)
+    @Enumerated(EnumType.STRING)
+    private Role role;
+    @Column(name = "password", length = 250, nullable = false)
+    @NotNull
+    private String password;
 
     /*@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<Activity> activities;*/
 
-    public User(final Long id,
-                final String firstName,
-                final String lastName,
-                final String accountName,
-                final String password,
-                final String email) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.accountName = accountName;
-        this.password = password;
-        this.email = email;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
-    public User(final String firstName,
-                final String lastName,
-                final String accountName,
-                final String password,
-                final String email) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.accountName = accountName;
-        this.password = password;
-        this.email = email;
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }
