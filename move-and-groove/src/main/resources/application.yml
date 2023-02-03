@@ -4,12 +4,3 @@ server:
       always
   port:
     8080
-spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: Martin.Eden1909!
-    url: jdbc:mysql://localhost:3306/moveAndGroove
-  jpa:
-    hibernate:
-      ddl-auto: create-drop

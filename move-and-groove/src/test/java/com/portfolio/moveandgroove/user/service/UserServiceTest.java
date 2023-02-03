@@ -1,6 +1,7 @@
 package com.portfolio.moveandgroove.user.service;
 
 import com.portfolio.moveandgroove.user.model.User;
+import com.portfolio.moveandgroove.user.model.UserDTO;
 import com.portfolio.moveandgroove.user.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,11 +28,16 @@ public class UserServiceTest {
     private UserService userService;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    private final UserDTOMapper userDTOMapper = new UserDTOMapper();
 
     @BeforeEach
     void setup() {
         Assertions.assertNotNull(userRepository);
-        userService = new UserService(userRepository);
+        Assertions.assertNotNull(userDTOMapper);
+        Assertions.assertNotNull(passwordEncoder);
+        userService = new UserService(userRepository, userDTOMapper, passwordEncoder);
     }
 
     @Test
@@ -40,11 +47,12 @@ public class UserServiceTest {
         final List<User> usersList = Collections.singletonList(user);
         // When
         Mockito.when(userRepository.findAll()).thenReturn(usersList);
-        final List<User> result = userService.getAllUsers();
+        final List<UserDTO> result = userService.getAllUsers();
         // Then
+        final UserDTO userDTO = userDTOMapper.apply(user);
         Assertions.assertNotNull(result);
         Assertions.assertFalse(result.isEmpty());
-        Assertions.assertEquals(result.get(0), user);
+        Assertions.assertEquals(result.get(0), userDTO);
         Mockito.verify(userRepository).findAll();
     }
 
@@ -62,14 +70,14 @@ public class UserServiceTest {
         // Given
         final User user = buildUser();
         final Long userId = user.getId();
-        final Optional<User> usersList = Optional.of(user);
+        final Optional<User> optionalUser = Optional.of(user);
+        final UserDTO userDTO = userDTOMapper.apply(user);
         // When
-        Mockito.when(userRepository.findById(userId)).thenReturn(usersList);
-        final Optional<User> result = userService.getUserById(userId);
+        Mockito.when(userRepository.findById(userId)).thenReturn(optionalUser);
+        final UserDTO result = userService.getUserById(userId);
         // Then
         Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.isPresent());
-        Assertions.assertEquals(result.get(), user);
+        Assertions.assertEquals(result, userDTO);
         Mockito.verify(userRepository).findById(userId);
     }
 
@@ -84,8 +92,7 @@ public class UserServiceTest {
 
     @Test
     void deleteUser() {
-        // Given
-        // When
+        // Given & When
         Mockito.when(userRepository.existsById(ID)).thenReturn(true);
         userService.deleteUser(ID);
         // Then
@@ -138,7 +145,7 @@ public class UserServiceTest {
                 .firstname("Naruto")
                 .lastname("Uzumaki")
                 .username("hinata")
-                .password("hokage")
+                .password(passwordEncoder.encode("hokage"))
                 .email("hokage@gmail.com")
                 .build();
         final Long user1Id = user1.getId();
@@ -161,7 +168,7 @@ public class UserServiceTest {
                 .firstname(FIRST_NAME)
                 .lastname(LAST_NAME)
                 .username("songoku")
-                .password(PASSWORD)
+                .password(passwordEncoder.encode(PASSWORD))
                 .email(EMAIL)
                 .build();
     }

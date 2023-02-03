@@ -1,70 +1,65 @@
-/*package com.portfolio.moveandgroove.activity.controller;
+package com.portfolio.moveandgroove.activity.controller;
 
-import com.portfolio.moveandgroove.activity.model.Activity;
-import com.portfolio.moveandgroove.activity.repository.ActivityRepository;
-import com.portfolio.moveandgroove.user.model.User;
+import com.portfolio.moveandgroove.activity.model.ActivityDTO;
+import com.portfolio.moveandgroove.activity.model.ActivityRequest;
+import com.portfolio.moveandgroove.activity.service.ActivityService;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Optional;
+import java.util.Set;
 
-@Controller
-@RequestMapping(path = "api/v1/activity")
+@RestController
+@RequestMapping(path = "api/v1/activities")
 public class ActivityController {
 
-    @Autowired
-    private final ActivityRepository activityRepository;
+    private final ActivityService activityService;
 
     @Autowired
-    private final User user;
-
-    public ActivityController(final ActivityRepository activityRepository, final User user) {
-        this.activityRepository = activityRepository;
-        this.user = user;
+    public ActivityController(final ActivityService activityService) {
+        this.activityService = activityService;
     }
 
-    @GetMapping(path = "/activities")
-    public ResponseEntity<Optional<Activity>> getAllActivities() {
-        final Long userId = user.getId();
-        final Optional<Activity> allActivitiesForUser = activityRepository.findActivitiesForUser(userId);
-        return ResponseEntity.ok(allActivitiesForUser);
+    @GetMapping(path = "/")
+    public ResponseEntity<Set<ActivityDTO>> getAllActivities(@RequestHeader(name = "userId") final Long userId) {
+        return ResponseEntity.ok(activityService.getAllActivities(userId));
     }
 
-    @GetMapping(path = "/activities/{id}")
-    public ResponseEntity<Optional<Activity>> getActivityById(@PathVariable("id") final Long activityId) {
-        final Long userId = user.getId();
-        final String message = String.format("%s doesn't exist", activityId);
-        final Optional<Activity> foundActivityById = Optional.ofNullable(
-                activityRepository.findActivityForUserById(userId, activityId)
-                        .orElseThrow(() -> new IllegalStateException(message)));
-        return ResponseEntity.ok(foundActivityById);
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<ActivityDTO> getActivityById(@RequestHeader(name = "userId") final Long userId,
+                                                       @PathVariable("id") final Long activityId) {
+        return ResponseEntity.ok(activityService.getActivityById(userId, activityId));
     }
 
-    @PostMapping(path = "/activities")
-    public ResponseEntity<Void> createActivity(@RequestParam final String name,
-                                               @RequestParam final LocalTime duration) {
-        final Activity activity = new Activity(name, LocalDate.now(), duration, user);
-        activityRepository.save(activity);
+    @Transactional
+    @PostMapping(path = "/")
+    public ResponseEntity<Void> createActivity(@RequestBody @NotNull final ActivityRequest activityRequest,
+                                               @RequestHeader(name = "userId") final Long userId) {
+        final String activityRequestName = activityRequest.getName();
+        final LocalTime activityRequestNameDuration = LocalTime.parse(activityRequest.getDuration());
+        activityService.createActivity(activityRequestName, activityRequestNameDuration, userId);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @DeleteMapping(path = "/activities/{id}")
-    public ResponseEntity<Void> deleteActivity(@PathVariable("id") final Long activityId) {
-        assertActivityExists(activityId);
-        activityRepository.deleteById(activityId);
+    @Transactional
+    @PutMapping(path = "/{id}")
+    public ResponseEntity<Void> updateActivity(@PathVariable("id") final Long activityId,
+                                               @RequestBody @NotNull final ActivityRequest activityRequest,
+                                               @RequestHeader(name = "userId") final Long userId) {
+        final String activityRequestName = activityRequest.getName();
+        final LocalTime activityRequestNameDuration = LocalTime.parse(activityRequest.getDuration());
+        activityService.updateActivity(userId, activityId, activityRequestName, activityRequestNameDuration);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    private void assertActivityExists(final Long id) {
-        final boolean doesIdExist = activityRepository.existsById(id);
-        if (!doesIdExist) {
-            final String message = String.format("%s doesn't exist", id);
-            throw new IllegalStateException(message);
-        }
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<Void> deleteActivity(@RequestHeader(name = "userId") final Long userId,
+                                               @PathVariable("id") final Long activityId) {
+        activityService.deleteActivity(userId, activityId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-}*/
+}

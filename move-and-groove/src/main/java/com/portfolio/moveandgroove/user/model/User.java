@@ -1,6 +1,6 @@
 package com.portfolio.moveandgroove.user.model;
 
-//import com.portfolio.moveandgroove.activity.model.Activity;
+import com.portfolio.moveandgroove.activity.model.Activity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,10 +13,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
+@Component
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +29,7 @@ import java.util.List;
 public class User implements UserDetails {
     @Id
     @GeneratedValue
-    @Column(name = "ID")
+    @Column(name = "id")
     private Long id;
     @Column(name = "firstname", length = 50, nullable = false)
     @NotBlank(message = "Firstname is mandatory")
@@ -35,7 +38,7 @@ public class User implements UserDetails {
     @NotBlank(message = "Lastname is mandatory")
     private String lastname;
     @Column(name = "username", length = 50, nullable = false, unique = true)
-    @Pattern(regexp = "^([a-zA-Z0-9.]){0,1}([a-zA-Z0-9.])+$")
+    @Pattern(regexp = "^([a-zA-Z0-9.])?([a-zA-Z0-9.])+$")
     @NotBlank(message = "Username is mandatory")
     private String username;
     @Column(name = "email", length = 250, nullable = false, unique = true)
@@ -48,9 +51,8 @@ public class User implements UserDetails {
     @Column(name = "password", length = 250, nullable = false)
     @NotNull
     private String password;
-
-    /*@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<Activity> activities;*/
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<Activity> activities;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

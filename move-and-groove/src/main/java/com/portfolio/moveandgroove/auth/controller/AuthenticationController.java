@@ -1,5 +1,9 @@
-package com.portfolio.moveandgroove.auth;
+package com.portfolio.moveandgroove.auth.controller;
 
+import com.portfolio.moveandgroove.auth.service.AuthenticationService;
+import com.portfolio.moveandgroove.auth.model.AuthenticationRequest;
+import com.portfolio.moveandgroove.auth.model.AuthenticationResponse;
+import com.portfolio.moveandgroove.auth.model.RegisterRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

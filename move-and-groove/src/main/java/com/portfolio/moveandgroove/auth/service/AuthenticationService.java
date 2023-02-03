@@ -1,5 +1,8 @@
-package com.portfolio.moveandgroove.auth;
+package com.portfolio.moveandgroove.auth.service;
 
+import com.portfolio.moveandgroove.auth.model.AuthenticationRequest;
+import com.portfolio.moveandgroove.auth.model.AuthenticationResponse;
+import com.portfolio.moveandgroove.auth.model.RegisterRequest;
 import com.portfolio.moveandgroove.config.JwtService;
 import com.portfolio.moveandgroove.user.model.Role;
 import com.portfolio.moveandgroove.user.model.User;
@@ -39,12 +42,13 @@ public class AuthenticationService {
     }
 
     private User buildUserWithRegisterRequest(final RegisterRequest registerRequest) {
+        final String registerRequestPassword = registerRequest.getPassword();
         return User.builder()
                 .firstname(registerRequest.getFirstname())
                 .lastname(registerRequest.getLastname())
                 .username(registerRequest.getUsername())
                 .email(registerRequest.getEmail())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .password(passwordEncoder.encode(registerRequestPassword))
                 .role(Role.USER)
                 .build();
     }

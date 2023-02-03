@@ -1,8 +1,8 @@
 package com.portfolio.moveandgroove.user.controller;
 
 import com.portfolio.moveandgroove.user.model.User;
+import com.portfolio.moveandgroove.user.model.UserDTO;
 import com.portfolio.moveandgroove.user.service.UserService;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,10 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     private final UserService userService;
@@ -24,24 +23,24 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping(path = "/users/{id}")
-    public ResponseEntity<Optional<User>> getUserById(@PathVariable("id") final Long userId) {
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable("id") final Long userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
-    @GetMapping(path = "/users")
-    public ResponseEntity<List<User>> getAllUsers() {
+    @GetMapping(path = "/")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @DeleteMapping(path = "/users/{id}")
+    @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") final Long userId) {
         userService.deleteUser(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Transactional
-    @PutMapping(path = "/users/{id}")
+    @PutMapping(path = "/{id}")
     public ResponseEntity<Void> updateUser(@PathVariable("id") final Long userId,
                                            @RequestBody @NotNull final User updatedUser) {
         userService.updateUser(userId, updatedUser);
