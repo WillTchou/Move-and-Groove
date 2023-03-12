@@ -41,22 +41,6 @@ public class UserServiceTest {
     }
 
     @Test
-    void getAllUsers() {
-        // Given
-        final User user = buildUser();
-        final List<User> usersList = Collections.singletonList(user);
-        // When
-        Mockito.when(userRepository.findAll()).thenReturn(usersList);
-        final List<UserDTO> result = userService.getAllUsers();
-        // Then
-        final UserDTO userDTO = userDTOMapper.apply(user);
-        Assertions.assertNotNull(result);
-        Assertions.assertFalse(result.isEmpty());
-        Assertions.assertEquals(result.get(0), userDTO);
-        Mockito.verify(userRepository).findAll();
-    }
-
-    @Test
     void getUserByIdThatDoesNotExist() {
         // Given
         final User user = buildUserWithNull();
@@ -79,6 +63,21 @@ public class UserServiceTest {
         Assertions.assertNotNull(result);
         Assertions.assertEquals(result, userDTO);
         Mockito.verify(userRepository).findById(userId);
+    }
+    @Test
+    void getUserByUsernameForDTO() {
+        // Given
+        final User user = buildUser();
+        final String username = user.getUsername();
+        final Optional<User> optionalUser = Optional.of(user);
+        final UserDTO userDTO = userDTOMapper.apply(user);
+        // When
+        Mockito.when(userRepository.findUserByUsername(username)).thenReturn(optionalUser);
+        final UserDTO result = userService.getUserByUsernameForDTO(username);
+        // Then
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(result, userDTO);
+        Mockito.verify(userRepository).findUserByUsername(username);
     }
 
     @Test

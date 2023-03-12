@@ -9,10 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -34,13 +32,6 @@ public class UserService {
         final Optional<User> optionalUser = userRepository.findById(userId);
         return optionalUser.map(userDTOMapper)
                 .orElseThrow(() -> new IllegalStateException(message));
-    }
-
-    public List<UserDTO> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(userDTOMapper)
-                .collect(Collectors.toList());
     }
 
     public void createUser(final User user) {
@@ -70,6 +61,13 @@ public class UserService {
     public User getUserByUsername(final String username) {
         return userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
+    public UserDTO getUserByUsernameForDTO(final String username) {
+        final String message = String.format("%s doesn't exist", username);
+        final Optional<User> optionalUser = userRepository.findUserByUsername(username);
+        return optionalUser.map(userDTOMapper)
+                .orElseThrow(() -> new IllegalStateException(message));
     }
 
     private final Consumer<Optional<User>> assertBodyParamIsUnique = bodyParam -> {

@@ -55,23 +55,20 @@ public class UserControllerTest {
                 .isNotNull()
                 .isEqualTo(userDTO);
     }
-
     @Test
-    void getAllUsers() {
+    void getUserByUsername() {
         //Given
         final UserDTO userDTO = buildUserDTO();
         //When
-        Mockito.when(userService.getAllUsers()).thenReturn(List.of(userDTO));
-        final ResponseEntity<List<UserDTO>> result = userController.getAllUsers();
+        Mockito.when(userService.getUserByUsernameForDTO(USERNAME)).thenReturn(userDTO);
+        final ResponseEntity<UserDTO> result = userController.getUserByUsername(USERNAME);
         //Then
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        final List<UserDTO> listFinalUserDTO = result.getBody();
-        Assertions.assertThat(listFinalUserDTO)
-                .isNotEmpty()
-                .hasSize(1);
-        final UserDTO finalUserDTO = listFinalUserDTO.get(0);
-        Assertions.assertThat(finalUserDTO).isEqualTo(userDTO);
+        final UserDTO finalUserDTO = result.getBody();
+        Assertions.assertThat(finalUserDTO)
+                .isNotNull()
+                .isEqualTo(userDTO);
     }
 
     @Test

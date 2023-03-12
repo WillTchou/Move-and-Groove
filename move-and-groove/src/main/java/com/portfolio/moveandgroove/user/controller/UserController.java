@@ -10,8 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
@@ -29,8 +27,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<UserDTO> getUserByUsername(@RequestParam(value="username") final String username) {
+        return ResponseEntity.ok(userService.getUserByUsernameForDTO(username));
     }
 
     @DeleteMapping(path = "/{id}")
