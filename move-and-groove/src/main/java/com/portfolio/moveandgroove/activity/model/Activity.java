@@ -44,6 +44,7 @@ public class Activity {
         this.duration = duration;
         this.user = user;
     }
+
     public Activity(final String name,
                     final LocalTime duration,
                     final User user) {

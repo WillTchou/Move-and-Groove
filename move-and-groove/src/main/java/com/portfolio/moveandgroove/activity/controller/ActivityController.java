@@ -24,24 +24,24 @@ public class ActivityController {
         this.activityService = activityService;
     }
 
-    @GetMapping(path = "/")
-    public ResponseEntity<Set<ActivityDTO>> getAllActivities(@RequestHeader(name = "userId") final Long userId) {
-        return ResponseEntity.ok(activityService.getAllActivities(userId));
+    @GetMapping
+    public ResponseEntity<Set<ActivityDTO>> getAllActivities(@RequestHeader(name = "username") final String username) {
+        return ResponseEntity.ok(activityService.getAllActivities(username));
     }
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<ActivityDTO> getActivityById(@RequestHeader(name = "userId") final Long userId,
+    public ResponseEntity<ActivityDTO> getActivityById(@RequestHeader(name = "username") final String username,
                                                        @PathVariable("id") final Long activityId) {
-        return ResponseEntity.ok(activityService.getActivityById(userId, activityId));
+        return ResponseEntity.ok(activityService.getActivityById(username, activityId));
     }
 
     @Transactional
-    @PostMapping(path = "/")
+    @PostMapping
     public ResponseEntity<Void> createActivity(@RequestBody @NotNull final ActivityRequest activityRequest,
-                                               @RequestHeader(name = "userId") final Long userId) {
+                                               @RequestHeader(name = "username") final String username) {
         final String activityRequestName = activityRequest.getName();
         final LocalTime activityRequestNameDuration = LocalTime.parse(activityRequest.getDuration());
-        activityService.createActivity(activityRequestName, activityRequestNameDuration, userId);
+        activityService.createActivity(activityRequestName, activityRequestNameDuration, username);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -49,17 +49,17 @@ public class ActivityController {
     @PutMapping(path = "/{id}")
     public ResponseEntity<Void> updateActivity(@PathVariable("id") final Long activityId,
                                                @RequestBody @NotNull final ActivityRequest activityRequest,
-                                               @RequestHeader(name = "userId") final Long userId) {
+                                               @RequestHeader(name = "username") final String username) {
         final String activityRequestName = activityRequest.getName();
         final LocalTime activityRequestNameDuration = LocalTime.parse(activityRequest.getDuration());
-        activityService.updateActivity(userId, activityId, activityRequestName, activityRequestNameDuration);
+        activityService.updateActivity(username, activityId, activityRequestName, activityRequestNameDuration);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> deleteActivity(@RequestHeader(name = "userId") final Long userId,
+    public ResponseEntity<Void> deleteActivity(@RequestHeader(name = "username") final String username,
                                                @PathVariable("id") final Long activityId) {
-        activityService.deleteActivity(userId, activityId);
+        activityService.deleteActivity(username, activityId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

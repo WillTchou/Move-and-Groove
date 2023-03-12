@@ -45,11 +45,11 @@ public class ActivityServiceTest {
     void getAllActivities() {
         //Given
         final Activity activity = buildActivity();
-        final Long userId = activity.getUser().getId();
+        final String username = activity.getUser().getUsername();
         final Set<Activity> activitySet = Set.of(activity);
         //When
-        Mockito.when(activityRepository.findActivitiesForUser(userId)).thenReturn(activitySet);
-        final Set<ActivityDTO> result = activityService.getAllActivities(userId);
+        Mockito.when(activityRepository.findActivitiesForUser(username)).thenReturn(activitySet);
+        final Set<ActivityDTO> result = activityService.getAllActivities(username);
         //Then
         final ActivityDTO activityDTO = activityDTOMapper.apply(activity);
         Assertions.assertThat(result)
@@ -57,19 +57,19 @@ public class ActivityServiceTest {
                 .isNotEmpty()
                 .hasSize(1);
         Assertions.assertThat(result.iterator().next()).isEqualTo(activityDTO);
-        Mockito.verify(activityRepository).findActivitiesForUser(userId);
+        Mockito.verify(activityRepository).findActivitiesForUser(username);
     }
 
     @Test
     void getActivityByIdThatDoesNotExist() {
         // Given
         final Activity activity = buildActivityWithNull();
-        final Long userId = activity.getUser().getId();
+        final String username = activity.getUser().getUsername();
         // When && Then
         final Long activityId = activity.getId();
         Assertions.assertThatExceptionOfType(IllegalStateException.class)
-                .isThrownBy(() -> activityService.getActivityById(userId, activityId))
-                .withMessage("Activity or User with id: %s or %s doesn't exist", activityId, userId);
+                .isThrownBy(() -> activityService.getActivityById(username, activityId))
+                .withMessage("Activity or User with id: %s or %s doesn't exist", activityId, username);
     }
 
     @Test
@@ -77,61 +77,61 @@ public class ActivityServiceTest {
         //Given
         final Activity activity = buildActivity();
         final Long activityId = activity.getId();
-        final Long userId = buildUser().getId();
+        final String username = buildUser().getUsername();
         final Optional<Activity> optionalActivity = Optional.of(activity);
         final ActivityDTO activityDTO = activityDTOMapper.apply(activity);
         //When
-        Mockito.when(activityRepository.findActivityForUserById(userId, activityId)).thenReturn(optionalActivity);
-        final ActivityDTO result = activityService.getActivityById(userId, activityId);
+        Mockito.when(activityRepository.findActivityForUserById(username, activityId)).thenReturn(optionalActivity);
+        final ActivityDTO result = activityService.getActivityById(username, activityId);
         //Then
         Assertions.assertThat(result)
                 .isNotNull()
                 .isEqualTo(activityDTO);
-        Mockito.verify(activityRepository).findActivityForUserById(userId, activityId);
+        Mockito.verify(activityRepository).findActivityForUserById(username, activityId);
     }
 
     @Test
     void deleteActivityWhenIsUserOwnerActivity() {
         // Given
-        final Long userId = buildUser().getId();
+        final String username = buildUser().getUsername();
         // When && Then
         Assertions.assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> activityService.deleteActivity(userId, ID))
-                .withMessage("User %s doesn't own this activity", userId);
+                .isThrownBy(() -> activityService.deleteActivity(username, ID))
+                .withMessage("User %s doesn't own this activity", username);
     }
 
     @Test
     void deleteActivity() {
         // Given
-        final Long userId = buildUser().getId();
+        final String username = buildUser().getUsername();
         final Activity activity = buildActivity();
         final Optional<Activity> optionalActivity = Optional.of(activity);
         // When
-        Mockito.when(activityRepository.findActivityForUserById(userId, ID)).thenReturn(optionalActivity);
-        activityService.deleteActivity(userId, ID);
+        Mockito.when(activityRepository.findActivityForUserById(username, ID)).thenReturn(optionalActivity);
+        activityService.deleteActivity(username, ID);
         // Then
-        Mockito.verify(activityRepository, Mockito.times(1)).findActivityForUserById(userId, ID);
+        Mockito.verify(activityRepository, Mockito.times(1)).findActivityForUserById(username, ID);
         Mockito.verify(activityRepository, Mockito.times(1)).deleteById(ID);
     }
 
     @Test
     void createActivityWithUnknownUser() {
         // Given
-        final long userId = 3L;
+        final String username = "blabla";
         // When && Then
         Assertions.assertThatExceptionOfType(IllegalStateException.class)
-                .isThrownBy(() -> activityService.createActivity("baseball", DURATION, userId))
-                .withMessage("User %s doesn't exist", userId);
+                .isThrownBy(() -> activityService.createActivity("baseball", DURATION, username))
+                .withMessage("User %s doesn't exist", username);
     }
 
     @Test
     void createActivity() {
         //Given
-        final Long userId = buildUser().getId();
+        final String username = buildUser().getUsername();
         final String activityName = "tennis";
         //When
-        Mockito.when(userRepository.findUserById(userId)).thenReturn(Optional.of(buildUser()));
-        activityService.createActivity(activityName, DURATION, userId);
+        Mockito.when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(buildUser()));
+        activityService.createActivity(activityName, DURATION, username);
         //Then
         final Activity activity = new Activity(activityName, DURATION, buildUser());
         Mockito.verify(activityRepository).save(activity);
@@ -142,15 +142,15 @@ public class ActivityServiceTest {
         //Given
         final Activity activity1 = buildActivity();
         final Activity activity2 = new Activity(2L, "Karaté", LocalTime.of(0, 3), buildUser());
-        final Long userId = buildUser().getId();
+        final String username = buildUser().getUsername();
         final Long activity1Id = activity1.getId();
         //When
-        Mockito.when(activityRepository.findActivityForUserById(userId, activity1Id)).thenReturn(Optional.of(activity1));
-        activityService.updateActivity(userId, activity1Id, activity2.getName(), activity2.getDuration());
+        Mockito.when(activityRepository.findActivityForUserById(username, activity1Id)).thenReturn(Optional.of(activity1));
+        activityService.updateActivity(username, activity1Id, activity2.getName(), activity2.getDuration());
         //Then
         Assertions.assertThat(activity1.getName()).isEqualTo(activity2.getName());
         Assertions.assertThat(activity1.getDuration()).isEqualTo(activity2.getDuration());
-        Mockito.verify(activityRepository).findActivityForUserById(userId, activity1Id);
+        Mockito.verify(activityRepository).findActivityForUserById(username, activity1Id);
     }
 
     private static User buildUser() {

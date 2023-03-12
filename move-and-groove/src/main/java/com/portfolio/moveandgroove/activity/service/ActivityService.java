@@ -28,50 +28,50 @@ public class ActivityService {
         this.userRepository = userRepository;
     }
 
-    public Set<ActivityDTO> getAllActivities(final Long userId) {
-        return activityRepository.findActivitiesForUser(userId)
+    public Set<ActivityDTO> getAllActivities(final String username) {
+        return activityRepository.findActivitiesForUser(username)
                 .stream()
                 .map(activityDTOMapper)
                 .collect(Collectors.toSet());
     }
 
-    public ActivityDTO getActivityById(final Long userId, final Long activityId) {
-        final String message = String.format("Activity or User with id: %s or %s doesn't exist", activityId, userId);
-        return activityRepository.findActivityForUserById(userId, activityId)
+    public ActivityDTO getActivityById(final String username, final Long activityId) {
+        final String message = String.format("Activity or User with id: %s or %s doesn't exist", activityId, username);
+        return activityRepository.findActivityForUserById(username, activityId)
                 .map(activityDTOMapper)
                 .orElseThrow(() -> new IllegalStateException(message));
     }
 
-    public void createActivity(final String name, final LocalTime duration, final Long userId) {
-        final String message = String.format("User %s doesn't exist", userId);
-        final User user = userRepository.findUserById(userId)
+    public void createActivity(final String name, final LocalTime duration, final String username) {
+        final String message = String.format("User %s doesn't exist", username);
+        final User user = userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new IllegalStateException(message));
         final Activity activity = new Activity(name, duration, user);
         activityRepository.save(activity);
     }
 
-    public void updateActivity(final Long userId, final Long activityId, final String name, final LocalTime duration) {
-        activityRepository.findActivityForUserById(userId, activityId)
+    public void updateActivity(final String username, final Long activityId, final String name, final LocalTime duration) {
+        activityRepository.findActivityForUserById(username, activityId)
                 .ifPresent(activityToUpdate -> {
                     setActivityFields(activityToUpdate, name, duration);
                     activityRepository.save(activityToUpdate);
                 });
     }
 
-    public void deleteActivity(final Long userId, final Long activityId) {
-        assertUserOwnerActivity(userId, activityId);
+    public void deleteActivity(final String username, final Long activityId) {
+        assertUserOwnerActivity(username, activityId);
         activityRepository.deleteById(activityId);
     }
 
-    private void assertUserOwnerActivity(Long userId, Long activityId) {
-        if (!isUserActivityOwner(userId, activityId)) {
-            final String message = String.format("User %s doesn't own this activity", userId);
+    private void assertUserOwnerActivity(final String username,final Long activityId) {
+        if (!isUserActivityOwner(username, activityId)) {
+            final String message = String.format("User %s doesn't own this activity", username);
             throw new IllegalArgumentException(message);
         }
     }
 
-    private boolean isUserActivityOwner(final Long userId, final Long activityId) {
-        return activityRepository.findActivityForUserById(userId, activityId).isPresent();
+    private boolean isUserActivityOwner(final String username, final Long activityId) {
+        return activityRepository.findActivityForUserById(username, activityId).isPresent();
     }
 
     private void setActivityFields(final Activity activityToUpdate, final String name, final LocalTime duration) {

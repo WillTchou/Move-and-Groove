@@ -12,9 +12,9 @@ import java.util.Set;
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
-    @Query("SELECT a FROM Activity a WHERE a.user.id = :userId")
-    Set<Activity> findActivitiesForUser(@Param("userId") final Long userId);
+    @Query("SELECT a FROM Activity a WHERE a.user.username = :username")
+    Set<Activity> findActivitiesForUser(@Param("username") final String username);
 
-    @Query("SELECT a FROM Activity a WHERE a.user.id = :userId AND a.id = :activityId")
-    Optional<Activity> findActivityForUserById(final Long userId, final Long activityId);
+    @Query("SELECT a FROM Activity a WHERE a.user.username = :username AND a.id = :activityId")
+    Optional<Activity> findActivityForUserById(final String username, final Long activityId);
 }

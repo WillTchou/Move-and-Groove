@@ -21,7 +21,7 @@ import java.util.Set;
 @ExtendWith(MockitoExtension.class)
 public class ActivityControllerTest {
 
-    private static final Long USER_ID = 1L;
+    private static final String USERNAME = "Isagi";
 
     private static final Long ACTIVITY_ID = 2L;
     private static final String ACTIVITY_NAME = "Soccer";
@@ -42,8 +42,8 @@ public class ActivityControllerTest {
         //Given
         final Set<ActivityDTO> activities = Set.of(buildActivity());
         //When
-        Mockito.when(activityService.getAllActivities(USER_ID)).thenReturn(activities);
-        final ResponseEntity<Set<ActivityDTO>> result = activityController.getAllActivities(USER_ID);
+        Mockito.when(activityService.getAllActivities(USERNAME)).thenReturn(activities);
+        final ResponseEntity<Set<ActivityDTO>> result = activityController.getAllActivities(USERNAME);
         //Then
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -58,8 +58,8 @@ public class ActivityControllerTest {
         //Given
         final ActivityDTO activities = buildActivity();
         //When
-        Mockito.when(activityService.getActivityById(USER_ID, ACTIVITY_ID)).thenReturn(activities);
-        final ResponseEntity<ActivityDTO> result = activityController.getActivityById(USER_ID, ACTIVITY_ID);
+        Mockito.when(activityService.getActivityById(USERNAME, ACTIVITY_ID)).thenReturn(activities);
+        final ResponseEntity<ActivityDTO> result = activityController.getActivityById(USERNAME, ACTIVITY_ID);
         //Then
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -79,11 +79,11 @@ public class ActivityControllerTest {
         final String activityRequestName = activityRequest.getName();
         final LocalTime activityRequestNameDuration = LocalTime.parse(activityRequest.getDuration());
         //When
-        final ResponseEntity<Void> result = activityController.createActivity(activityRequest, USER_ID);
+        final ResponseEntity<Void> result = activityController.createActivity(activityRequest, USERNAME);
         //Then
         Assertions.assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Mockito.verify(activityService, Mockito.times(1))
-                .createActivity(activityRequestName, activityRequestNameDuration, USER_ID);
+                .createActivity(activityRequestName, activityRequestNameDuration, USERNAME);
     }
 
     @Test
@@ -96,19 +96,19 @@ public class ActivityControllerTest {
         final LocalTime activityRequestNameDuration = LocalTime.parse(activityRequest.getDuration());
         final String activityRequestName = activityRequest.getName();
         // When
-        final ResponseEntity<Void> result = activityController.updateActivity(ACTIVITY_ID, activityRequest, USER_ID);
+        final ResponseEntity<Void> result = activityController.updateActivity(ACTIVITY_ID, activityRequest, USERNAME);
         // Then
         Assertions.assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        Mockito.verify(activityService).updateActivity(USER_ID, ACTIVITY_ID, activityRequestName, activityRequestNameDuration);
+        Mockito.verify(activityService).updateActivity(USERNAME, ACTIVITY_ID, activityRequestName, activityRequestNameDuration);
     }
 
     @Test
     void deleteActivity() {
         //Given & When
-        final ResponseEntity<Void> result = activityController.deleteActivity(USER_ID, ACTIVITY_ID);
+        final ResponseEntity<Void> result = activityController.deleteActivity(USERNAME, ACTIVITY_ID);
         //Then
         Assertions.assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        Mockito.verify(activityService, Mockito.times(1)).deleteActivity(USER_ID, ACTIVITY_ID);
+        Mockito.verify(activityService, Mockito.times(1)).deleteActivity(USERNAME, ACTIVITY_ID);
     }
 
     private static ActivityDTO buildActivity() {
